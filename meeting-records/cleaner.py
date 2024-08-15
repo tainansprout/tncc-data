@@ -37,6 +37,8 @@ def format_speaker(line):
         r'^(\D+?副局長\D+?)[:：]$',
         r'^(\D+?分局長\D+?)[:：]$',
         r'^(\D+?局長\D+?)[:：]$',
+        r'^(\D+?代理處長\D+?)[:：]$',
+        r'^(\D+?副處長\D+?)[:：]$',
         r'^(\D+?處長\D+?)[:：]$',
         r'^(\D+?代理科長\D+?)[:：]$',
         r'^(\D+?科長\D+?)[:：]$',
@@ -58,7 +60,7 @@ def format_speaker(line):
                 return f"{chairman}{formatted_name}："
             else:
                 name = groups[0]
-                parts = re.split(r'(議員|市長|代理局長|副局長|分局長|局長|代理科長|科長|代理區長|區長|主任委員|主任秘書|主任|所長|處長)', name)
+                parts = re.split(r'(議員|市長|代理局長|副局長|分局長|局長|代理科長|科長|代理區長|區長|主任委員|主任秘書|主任|所長|代理處長|副處長|處長)', name)
                 formatted_name = ''.join([parts[0], parts[2], parts[1]]) + '：'
                 return formatted_name
     return line
@@ -72,6 +74,8 @@ def split_speaker_line(line):
         r'^(\D+?副局長\D{1,3}[:：])(.*)$',
         r'^(\D+?分局長\D{1,3}[:：])(.*)$',
         r'^(\D+?局長\D{1,3}[:：])(.*)$',
+        r'^(\D+?代理處長\D{1,3}[:：])(.*)$',
+        r'^(\D+?副處長\D{1,3}[:：])(.*)$',
         r'^(\D+?處長\D{1,3}[:：])(.*)$',
         r'^(\D+?代理科長\D{1,3}[:：])(.*)$',
         r'^(\D+?科長\D{1,3}[:：])(.*)$',
@@ -123,6 +127,8 @@ def process_text(text):
     lines = [line for line in lines if not line.isdigit()]
     lines = [line for line in lines if not re.match(r'^第.*　\d+$', line)]
     meeting_title_prefix = ''
+    # print(lines[0])
+    # print(lines[1])
     if re.match(r'^臺南市議會第\d+屆第\d+次(定期會|臨時會)會議紀錄$', lines[0].strip().replace(' ', '')):
         meeting_title_prefix = lines[0].strip().replace(' ', '').replace('會議紀錄', '').replace('臺南市議會', '')
         del lines[0:1]
@@ -139,9 +145,27 @@ def process_text(text):
         meeting_title = meeting_title_prefix + meeting_title
         lines[0] = meeting_title
         # print(meeting_title)
+    elif '市政總質詢' in lines[0]:
+        meeting_title = lines[0].replace(' ', '').replace('」', '').replace('「', '')
+        match = re.search(r'(\d{1,4}年\d{1,2}月\d{1,2}日)', meeting_title)
+        if match:
+            meeting_date = match.group(1)
+            new_meeting_date = roc_to_western_date(meeting_date)
+            lines.insert(1, new_meeting_date)
+            meeting_title = meeting_title.replace(meeting_date, new_meeting_date)
+        meeting_title = meeting_title_prefix + meeting_title
+        lines[0] = meeting_title
+        # print(meeting_title)
     elif '會議紀錄' in lines[0]:
         meeting_title = lines[0].split('會議紀錄')[0].strip() + '會議紀錄'
         meeting_date = lines[0].split('會議紀錄')[1].strip()
+        if '專案報告' in meeting_date:
+            meeting_date = meeting_date.replace(' ', '')
+            match = re.search(r'(\d{1,4}年\d{1,2}月\d{1,2}日)', meeting_date)
+            if match:
+                date_string = match.group(1)
+                meeting_title += meeting_date.replace(date_string, '')
+                meeting_date = date_string
         lines.insert(1, meeting_date)
     elif '專案報告' in lines[0]:
         first_line = lines[0]
@@ -216,7 +240,7 @@ def process_text(text):
     return meeting_title, info_list, record_list
 
 def record_list_to_output(processed_list):
-    speaker_pattern = r'^(主席|\D+?議員|\D+?市長|\D+?代理局長|\D+?副局長|\D+?局長|\D+?處長|\D+?代理科長|\D+?科長|\D+?代理區長|\D+?區長|\D+?主任委員|\D+?主任秘書|\D+?主任|\D+?所長)[:：]$'
+    speaker_pattern = r'^(主席|\D+?議員|\D+?市長|\D+?代理局長|\D+?副局長|\D+?局長|\D+?代理處長|\D+?副處長|\D+?處長|\D+?代理科長|\D+?科長|\D+?代理區長|\D+?區長|\D+?主任委員|\D+?主任秘書|\D+?主任|\D+?所長)[:：]$'
     speaker = None
     result_txt = []
     result_csv = []
@@ -265,4 +289,5 @@ if __name__ == "__main__":
         result_list = [meeting_title] + info_list + record_list
         save_file(result_list, 'output/txt/' + meeting_title + '_output.txt')
         save_csv_file(result_csv, 'output/csv/' + meeting_title + '_output.csv')
+        print(meeting_title + '_output.csv')
 
