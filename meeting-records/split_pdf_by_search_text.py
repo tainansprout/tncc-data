@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+
 import fitz  # PyMuPDF
 import sys
 import os
 
-#  python split_pdf_by_search_text.py 臺南市議會第4屆第1次定期會議事錄.pdf "次會會議紀錄" "」會議紀錄" "次會議)" "部門業務報告及質詢" "會市政總質詢" "」專案報告"
+#  python split_pdf_by_search_text.py 臺南市議會議事錄第4屆第6次臨時會議事錄.pdf "次會會議紀錄" "」會議紀錄" "次會議)" "部門業務報告及質詢" "會市政總質詢" "」專案報告"
 
 def save_pdf_to_txt(document, output_filename):
     text = ''
