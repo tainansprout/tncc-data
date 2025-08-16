@@ -3,3 +3,7 @@
 */.DS_Store
 logs
 *.log
+
+meeting-records/raw/*
+meeting-records/input/archive/*
+meeting-records/output/txt/new/*

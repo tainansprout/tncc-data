@@ -287,7 +287,7 @@ if __name__ == "__main__":
         record_list = process_record_list(record_list)
         record_list, result_csv = record_list_to_output(record_list)
         result_list = [meeting_title] + info_list + record_list
-        save_file(result_list, 'output/txt/' + meeting_title + '_output.txt')
+        save_file(result_list, 'output/txt/new/' + meeting_title + '.txt')
         save_csv_file(result_csv, 'output/csv/' + meeting_title + '_output.csv')
         print(meeting_title + '_output.csv')
 
